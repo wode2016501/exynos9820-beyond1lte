@@ -2797,7 +2797,7 @@ static int hub_port_wait_reset(struct usb_hub *hub, int port1,
 
 /* Handle port reset and port warm(BH) reset (for USB3 protocol ports) */
 static int hub_port_reset(struct usb_hub *hub, int port1,
-			struct usb_device *udev, unsigned int delay, bool warm)
+		struct usb_device *udev, unsigned int delay, bool warm, u32 trstrcy)
 {
 	int i, status;
 	u16 portchange, portstatus;
@@ -2896,7 +2896,7 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
 done:
 	if (status == 0) {
 		/* TRSTRCY = 10 ms; plus some extra */
-		msleep(10 + 40);
+		usleep_range(trstrcy*1000, trstrcy*1200);
 		if (udev) {
 			struct usb_hcd *hcd = bus_to_hcd(udev->bus);
 
@@ -3462,7 +3462,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	if (!test_and_set_bit(port1, hub->child_usage_bits)) {
 		status = pm_runtime_get_sync(&port_dev->dev);
 		if (status < 0) {
-			dev_dbg(&udev->dev, "can't resume usb port, status %d\n",
+			dev_err(&udev->dev, "can't resume usb port, status %d\n",
 					status);
 			return status;
 		}
@@ -3485,7 +3485,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 		status = usb_clear_port_feature(hub->hdev,
 				port1, USB_PORT_FEAT_SUSPEND);
 	if (status) {
-		dev_dbg(&port_dev->dev, "can't resume, status %d\n", status);
+		dev_err(&port_dev->dev, "can't resume, status %d\n", status);
 	} else {
 		/* drive resume for USB_RESUME_TIMEOUT msec */
 		dev_dbg(&udev->dev, "usb %sresume\n",
@@ -3525,7 +3525,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	if (status == 0)
 		status = finish_port_resume(udev);
 	if (status < 0) {
-		dev_dbg(&udev->dev, "can't resume, status %d\n", status);
+		dev_err(&udev->dev, "can't resume, status %d\n", status);
 		hub_port_logical_disconnect(hub, port1);
 	} else  {
 		/* Try to enable USB2 hardware LPM */
@@ -4406,6 +4406,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 	const char		*speed;
 	int			devnum = udev->devnum;
 	const char		*driver_name;
+	u32			trstrcy = 50;
 
 	/* root hub ports have a slightly longer reset period
 	 * (from USB 2.0 spec, section 7.1.7.5)
@@ -4425,7 +4426,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 
 	/* Reset the device; full speed may morph to high speed */
 	/* FIXME a USB 2.0 device may morph into SuperSpeed on reset. */
-	retval = hub_port_reset(hub, port1, udev, delay, false);
+	retval = hub_port_reset(hub, port1, udev, delay, false, trstrcy);
 	if (retval < 0)		/* error or disconnect */
 		goto fail;
 	/* success, speed is known */
@@ -4580,7 +4581,11 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 					buf->bMaxPacketSize0;
 			kfree(buf);
 
-			retval = hub_port_reset(hub, port1, udev, delay, false);
+			if (retries == 0)
+				trstrcy = 10;
+			else
+				trstrcy = 50;
+			retval = hub_port_reset(hub, port1, udev, delay, false, trstrcy);
 			if (retval < 0)		/* error or disconnect */
 				goto fail;
 			if (oldspeed != udev->speed) {
@@ -4666,7 +4671,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 		dev_err(&udev->dev, "got a wrong device descriptor, "
 				"warm reset device\n");
 		hub_port_reset(hub, port1, udev,
-				HUB_BH_RESET_TIME, true);
+				HUB_BH_RESET_TIME, true, 50);
 		retval = -EINVAL;
 		goto fail;
 	}
@@ -4820,6 +4825,8 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 		"port %d, status %04x, change %04x, %s\n",
 		port1, portstatus, portchange, portspeed(hub, portstatus));
 #endif
+
+	pr_info("%s\n", __func__);
 
 	/* Disconnect any existing devices under this port */
 	if (udev) {
@@ -5190,7 +5197,7 @@ static void port_event(struct usb_hub *hub, int port1)
 		if (!udev || !(portstatus & USB_PORT_STAT_CONNECTION)
 				|| udev->state == USB_STATE_NOTATTACHED) {
 			if (hub_port_reset(hub, port1, NULL,
-					HUB_BH_RESET_TIME, true) < 0)
+					HUB_BH_RESET_TIME, true, 50) < 0)
 				hub_port_disable(hub, port1, 1);
 		} else {
 			usb_unlock_port(port_dev);

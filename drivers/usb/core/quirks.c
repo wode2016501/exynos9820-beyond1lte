@@ -191,11 +191,7 @@ static const struct usb_device_id usb_quirk_list[] = {
 	/* SanDisk Ultra Fit and Ultra Flair */
 	{ USB_DEVICE(0x0781, 0x5583), .driver_info = USB_QUIRK_NO_LPM },
 	{ USB_DEVICE(0x0781, 0x5591), .driver_info = USB_QUIRK_NO_LPM },
-<<<<<<< HEAD
-	
-=======
 
->>>>>>> refs/rewritten/Merge-4.14.113-into-android-4.14-q-2
 	/* M-Systems Flash Disk Pioneers */
 	{ USB_DEVICE(0x08ec, 0x1000), .driver_info = USB_QUIRK_RESET_RESUME },
 
@@ -295,6 +291,13 @@ static const struct usb_device_id usb_quirk_list[] = {
 
 	/* Realtek r8153 Lan dongle */
 	{ USB_DEVICE(0x0bda, 0x8153), .driver_info = USB_QUIRK_NO_LPM },
+
+	/* BES USB Headset */
+	{ USB_DEVICE(0xbe57, 0x020f), .driver_info = USB_QUIRK_RESET },
+
+	/* Samsung R1 USB Headset */
+	{ USB_DEVICE(0x04e8, 0xa04f), .driver_info = USB_QUIRK_RESET },
+	{ USB_DEVICE(0x04e8, 0xa057), .driver_info = USB_QUIRK_RESET },
 
 	{ }  /* terminating entry must be last */
 };

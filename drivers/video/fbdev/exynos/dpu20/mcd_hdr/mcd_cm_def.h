@@ -47,4 +47,4 @@ enum gamut_index {
     INDEX_GAMMA_ST2084         ,    // HAL_DATASPACE_TRANSFER_ST2084
     INDEX_GAMMA_HLG            ,    // HAL_DATASPACE_TRANSFER_HLG
     INDEX_GAMMA_NUM            ,
-};#define SMPTE170M_ASSUME_GAMMA22#define TUNE_NETFLIX#endif //__MCD_CM_DEF_H__
+};#define SMPTE170M_ASSUME_GAMMA22#define TUNE_NETFLIX#endif //__MCD_CM_DEF_H__
