@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+ver="$(cat "$DIR/magisk_version" 2>/dev/null || echo -n 'none')"
+nver="$(curl -s https://github.com/topjohnwu/Magisk/releases/latest | grep -o 'v[[:digit:].]*')"
+
+if [ \( -n "$nver" \) -a \( "$nver" != "$ver" \) -o ! \( -f "$DIR/arm/magiskinit64" \) ]
+then
+	echo "Updating Magisk from $ver to $nver"
+	curl -s --output "$DIR/magisk.zip" -L "https://github.com/topjohnwu/Magisk/releases/download/${nver}/Magisk-${nver}.zip"
+	unzip -o "$DIR/magisk.zip" arm/magiskinit64 -d "$DIR"
+	echo -n "$nver" > "$DIR/magisk_version"
+	rm "$DIR/magisk.zip"
+else
+	echo "Nothing to be done: Magisk version $nver"
+fi
