@@ -76,3 +76,7 @@ section.
 
 To keep your version of the sources in sync with main tree, please look at this tutorial:
 https://stackoverflow.com/questions/20984802/how-can-i-keep-my-fork-in-sync-without-adding-a-separate-remote/21131381#21131381
+
+## Support
+
+- [Telegram](https://t.me/joinchat/GsJfBBaxozXvVkSJhm0IOQ)
