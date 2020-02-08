@@ -58,6 +58,7 @@ Only the *.conf files prefixed with "cruel" are valuable.
 For example:
 * magisk - integrates magisk into the kernel. This allows to have root without
   booting from recovery. Enabled by default.
+* magisk+canary - integrates canary magisk into the kernel.
 * ttl - adds iptables filters for altering ttl values of network packets. This
   helps to bypass tethering blocking in mobile networks.
 * wireguard - adds wireguard module to the kernel.

@@ -84,7 +84,17 @@ def parse_args(configs):
 			if switch not in ['+', '-']:
 				print_usage(name, all_modes, configs)
 				fatal("Unknown switch '{0}'. Please, use '+{0}'/'-{0}' to enable/disable option.".format(i))
-			if opt in configs:
+
+			if opt == 'magisk+canary':
+				configs['magisk']['enabled'] = enable
+				configs['magisk']['canary'] = True
+			elif opt == 'magisk-canary':
+				configs['magisk']['enabled'] = enable
+				configs['magisk']['canary'] = False
+			elif opt == 'magisk':
+				configs['magisk']['enabled'] = enable
+				configs['magisk']['canary'] = False
+			elif opt in configs:
 				configs[opt]['enabled'] = enable
 			else:
 				print_usage(name, all_modes, configs)
@@ -132,8 +142,11 @@ def make_config(configs):
 		print("Setting kernel name to: " + configs['name'])
 		config_name(configs['name'])
 
-def update_magisk():
-	run(['usr/magisk/update_magisk.sh'])
+def update_magisk(canary):
+	cmd = ['usr/magisk/update_magisk.sh']
+	if canary:
+		cmd.append('--canary')
+	run(cmd)
 
 def build():
 	run(['make', '-j', str(get_cores_num())], check=True)
@@ -212,7 +225,7 @@ if __name__ == "__main__":
 
 	if 'config' in stages:
 		if configs['magisk']['enabled']:
-			update_magisk()
+			update_magisk(configs['magisk']['canary'])
 
 		make_config(configs)
 
